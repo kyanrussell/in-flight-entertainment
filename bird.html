@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Endless Bird Animation with Smooth Sinusoidal Path</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #87CEEB; /* Sky blue background */
+    }
+
+    .bird {
+      position: absolute;
+      left: 0;
+      width: 50px;
+      height: 50px;
+    }
+
+    /* Wing flapping animation */
+    .wing {
+      transform-origin: top;
+      animation: flap 0.5s ease-in-out infinite;
+    }
+
+    @keyframes flap {
+      0% {
+        transform: rotate(0deg);
+      }
+      50% {
+        transform: rotate(45deg);
+      }
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <script>
+    // Function to create a random integer between min and max
+    function getRandom(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function getRandomIndex(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    // Function to update the bird's position for both horizontal and vertical motion
+    function animateBird(bird, amplitude, frequency, phaseShift, speed) {
+      const startTime = performance.now(); // Start time for smooth animation
+
+      function animate() {
+        const elapsedTime = (performance.now() - startTime) / 1000; // Time in seconds
+
+        // Calculate the X position based on elapsed time and speed
+        const xPos = (elapsedTime * window.innerWidth / speed) % window.innerWidth; // Horizontal position
+
+        // Calculate the Y position using a sine wave
+        const sineWave = amplitude * Math.sin(frequency * xPos + phaseShift); // Sinusoidal vertical position
+
+        // Calculate the angle of the bird's path
+        const dx = 1; // Horizontal change is constant
+        const dy = amplitude * frequency * Math.cos(frequency * xPos + phaseShift); // Vertical change
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI); // Convert radians to degrees
+
+        // Move the bird horizontally and apply sinusoidal motion vertically
+        bird.style.transform = `translate(${xPos}px, ${sineWave}px) rotate(${angle}deg)`;
+
+        // If the bird has flown off the screen, reset it
+        if (xPos < 800) {//window.innerWidth) {
+          requestAnimationFrame(animate); // Continue animation if bird is still on screen
+        } else {
+          bird.remove(); // Remove bird if it flies off the screen
+        }
+      }
+
+      requestAnimationFrame(animate); // Start animation
+    }
+
+
+    // Function to create a random bird element
+    function createBird() {
+      const bird = document.createElement('div');
+      bird.classList.add('bird');
+
+      // Set random top position (height)
+      const top = getRandom(10, 80); // Random height between 10% and 80% of viewport
+      bird.style.top = `${top}vh`;
+
+      // speed, amplitude
+      const species = [
+        [20, 2], // BVSH
+        [100, 5], // PFSH
+        [60, 3]  // SOSH
+      ];
+      
+      const index = getRandomIndex(species.length)
+      const [amplitude, speed] = species[index]
+
+      // Add the bird SVG (simple circle and wings)
+      bird.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="50" height="50">
+        <!-- Body of the bird -->
+        <ellipse cx="32" cy="32" rx="12" ry="8" fill="black"></ellipse>
+        <!-- Top wing -->
+        <polygon points="22,32 32,0 42,32" fill="black"></polygon>
+        <!-- Bottom wing -->
+        <polygon points="22,32 32,64 42,32" fill="black"></polygon>
+      </svg>
+      `;
+
+      // Append the bird to the body
+      document.body.appendChild(bird);
+
+      // Start animating bird with smooth sinusoidal motion
+      const frequency = getRandom(0.005, 0.02); // Random frequency for the wave
+      const phaseShift = getRandom(0, Math.PI * 2); // Random phase shift for variety
+      animateBird(bird, amplitude, frequency, phaseShift, speed);
+    }
+
+    // Function to add birds continuously
+    function startBirdStream(interval) {
+      setInterval(() => {
+        createBird();
+      }, getRandom(500, 1000)); // Interval in milliseconds (e.g., 2000ms = 2 seconds)
+    }
+
+    startBirdStream();
+  </script>
+
+</body>
+</html>
+
